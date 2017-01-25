@@ -168,6 +168,10 @@ class Step(Wrapper):
         if stype not in set(['data_collection_input', 'data_input', 'pause',
                              'tool']):
             raise ValueError('Unknown step type: %r' % stype)
+        try:
+            self.tool_inputs = json.loads(self.tool_inputs)
+        except (TypeError, ValueError):
+            pass
         if self.type == 'tool' and self.tool_inputs:
             for k, v in six.iteritems(self.tool_inputs):
                 self.tool_inputs[k] = json.loads(v)
