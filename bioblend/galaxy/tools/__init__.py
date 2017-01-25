@@ -145,8 +145,18 @@ class ToolClient(Client):
             keywords["file_name"] = basename(path)
         payload = self._upload_payload(history_id, **keywords)
         payload["files_0|file_data"] = attach_file(path, name=keywords["file_name"])
+        url = None
+        # Ann BZ: Updated to be capable of overriting the Galaxy URL used
+        #      This is to support the ability of having uploads move through nginx on our Galaxy server
+        #      This change might not be necessary in more current galaxy installations.
+        #      In order for the tool uploads to go through nginx, we needed a upload url of
+        #           url="_upload?nginx_redir=/api/tools"
+        if "url" in keywords:
+            old_url = self.gi._make_url(self, module_id=url)
+            url = keywords["url"]
+            new_url = old_url.replace("/".join(["api", self.module]), url)
         try:
-            return self._tool_post(payload, files_attached=True)
+            return self._tool_post(payload, url=new_url, files_attached=True)
         finally:
             payload["files_0|file_data"].close()
 
@@ -204,7 +214,7 @@ class ToolClient(Client):
         payload["inputs"] = tool_input
         return payload
 
-    def _tool_post(self, payload, files_attached=False):
+    def _tool_post(self, payload, files_attached=False, url=None):
         if files_attached:
             # If files_attached - this will be posted as multi-part form data
             # and so each individual parameter needs to be encoded so can be
@@ -216,4 +226,5 @@ class ToolClient(Client):
             for key in complex_payload_params:
                 if key in payload:
                     payload[key] = dumps(payload[key])
-        return self._post(payload, files_attached=files_attached)
+        # ANN BZ: Updated to pass along the URL to use.  This URL will override any default specified.
+        return self._post(payload, url=url, files_attached=files_attached)
