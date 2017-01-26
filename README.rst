@@ -39,3 +39,9 @@ MORL FORK NOTES
 The only file changed was the tool client logic which uploads files to galaxy.  See bioblend/galaxy/tools/__init__.py.  The logic was altered to support passing in a URL to use when interacting with Galaxy to upload files.  We needed this because the default URL used (api/tools) was bypassing nginx.  We needed to specify the following URL during file upload in order to allow nginx to handle the uploads from the API (note that uploading from the UI went through nginx): _upload?nginx_redir=/api/tools
 
 We confirmed that nginx was not handling api uploads by initiating a http upload and tailing/monitoring the nginx log files (and comparing to what the log file looked like from a manual UI initiated upload of a file over http).
+
+CODE NOTES
+
+To see how the code builds up the submission URL (when one is not specified), see the galaxyclient.py 21-38 __init__ definition and 39-66 make_url.
+To see how the tool client gets this URL look at _get and _post definitions in client.py
+To see how the code
